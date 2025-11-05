@@ -1,0 +1,31 @@
+name: Pairing Code
+on:
+  workflow_dispatch:
+    inputs:
+      phone:
+        description: 'Full phone with country code'
+        required: true
+permissions:
+  contents: write
+jobs:
+  pairing:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - name: Install deps
+      run: |
+        npm init -y
+        npm i @whiskeysockets/baileys@^6 pino@^9
+    - name: Generate pairing code
+      run: node scripts/generate-pair-code.mjs ${{ inputs.phone }}
+    - name: Commit pairing code
+      run: |
+        git config user.name "automation-bot"
+        git config user.email "automation-bot@users.noreply.github.com"
+        test -f session/pair_code.txt
+        git add session/pair_code.txt
+        git commit -m "Add pairing code"
+        git push
